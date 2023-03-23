@@ -17,7 +17,7 @@ const app = express();
 
 
 //connect to mongodb
-const dbURI = "mongodb+srv://admin:Sony.vaio88@nodetuts.88v2qwy.mongodb.net/dao?retryWrites=true&w=majority";
+const dbURI = "***";
 mongoose.connect(dbURI, {useNewUrlParser: true, useUnifiedTopology: true})
 .then((result) => app.listen(8081))
 .catch((err) => console.log(err));

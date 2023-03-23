@@ -3,8 +3,8 @@ path = require('path');
 
 // algod connection parameters
 const algosdk = require('algosdk');
-const algodToken = 'wyJPvEjtIB9r5G1fbvR6w7TlUQsJtDZjrPVhAa0a';
-const algodServer = 'https://testnet-algorand.api.purestake.io/ps2';
+const algodToken = '***';
+const algodServer = '***';
 const algodPort = '';
 algodClient = new algosdk.Algodv2({'X-API-Key': algodToken}, algodServer, algodPort);
 
