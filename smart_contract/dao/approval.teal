@@ -1,0 +1,250 @@
+#pragma version 7
+txn ApplicationID
+int 0
+==
+bnz main_l21
+txn OnCompletion
+int DeleteApplication
+==
+bnz main_l20
+txn OnCompletion
+int UpdateApplication
+==
+bnz main_l19
+txn OnCompletion
+int OptIn
+==
+bnz main_l18
+txn OnCompletion
+int CloseOut
+==
+bnz main_l17
+txn OnCompletion
+int NoOp
+==
+bnz main_l7
+err
+main_l7:
+txna ApplicationArgs 0
+byte "setOwner"
+==
+bnz main_l16
+txna ApplicationArgs 0
+byte "setName"
+==
+bnz main_l15
+txna ApplicationArgs 0
+byte "setIsProposalPublic"
+==
+bnz main_l14
+txna ApplicationArgs 0
+byte "setLstProposalAddr"
+==
+bnz main_l12
+err
+main_l12:
+callsub setLstProposalAddr_6
+main_l13:
+int 0
+return
+main_l14:
+callsub setIsProposalPublic_5
+b main_l13
+main_l15:
+callsub setName_4
+b main_l13
+main_l16:
+callsub setOwner_3
+b main_l13
+main_l17:
+int 0
+return
+main_l18:
+int 1
+return
+main_l19:
+int 0
+return
+main_l20:
+int 0
+return
+main_l21:
+callsub daoInit_2
+int 1
+return
+
+// basicTxnCheck
+basicTxnCheck_0:
+store 0
+global GroupSize
+int 1
+==
+txn GroupIndex
+int 0
+==
+&&
+assert
+gtxn 0 RekeyTo
+global ZeroAddress
+==
+assert
+txn NumAppArgs
+load 0
+==
+assert
+retsub
+
+// setterOpCheck
+setterOpCheck_1:
+int 2
+callsub basicTxnCheck_0
+txn Sender
+byte "owner"
+app_global_get
+==
+assert
+retsub
+
+// daoInit
+daoInit_2:
+int 6
+callsub basicTxnCheck_0
+txna ApplicationArgs 3
+btoi
+int 0
+==
+txna ApplicationArgs 3
+btoi
+int 1
+==
+||
+txna ApplicationArgs 5
+btoi
+int 0
+==
+||
+txna ApplicationArgs 5
+btoi
+int 1
+==
+||
+int 0
+txna ApplicationArgs 4
+btoi
+<
+||
+assert
+byte "owner"
+txn Sender
+app_global_put
+byte "name"
+txna ApplicationArgs 0
+app_global_put
+byte "url"
+txna ApplicationArgs 1
+app_global_put
+byte "urlHash"
+txna ApplicationArgs 2
+app_global_put
+byte "isProposalPublic"
+txna ApplicationArgs 3
+btoi
+app_global_put
+byte "lstProposalAddr"
+int 0
+app_global_put
+byte "tokenAdd"
+txna ApplicationArgs 4
+btoi
+app_global_put
+byte "isAssociation"
+txna ApplicationArgs 5
+btoi
+app_global_put
+int 1
+return
+
+// setOwner
+setOwner_3:
+callsub setterOpCheck_1
+byte "owner"
+txna ApplicationArgs 1
+app_global_put
+int 1
+return
+
+// setName
+setName_4:
+callsub setterOpCheck_1
+byte "name"
+txna ApplicationArgs 1
+app_global_put
+int 1
+return
+
+// setIsProposalPublic
+setIsProposalPublic_5:
+callsub setterOpCheck_1
+txna ApplicationArgs 1
+btoi
+int 0
+==
+txna ApplicationArgs 1
+btoi
+int 1
+==
+||
+assert
+byte "isProposalPublic"
+txna ApplicationArgs 1
+btoi
+app_global_put
+int 1
+return
+
+// setLstProposalAddr
+setLstProposalAddr_6:
+global GroupSize
+int 2
+==
+txn GroupIndex
+int 1
+==
+&&
+assert
+gtxn 0 RekeyTo
+global ZeroAddress
+==
+gtxn 1 RekeyTo
+global ZeroAddress
+==
+&&
+assert
+txn NumAppArgs
+int 1
+==
+gtxn 0 TypeEnum
+int appl
+==
+&&
+gtxna 0 Applications 1
+txna Applications 0
+==
+&&
+assert
+byte "isProposalPublic"
+app_global_get
+int 0
+==
+bz setLstProposalAddr_6_l2
+txn Sender
+byte "owner"
+app_global_get
+==
+assert
+setLstProposalAddr_6_l2:
+byte "lstProposalAddr"
+gtxn 0 CreatedApplicationID
+app_global_put
+int 1
+return

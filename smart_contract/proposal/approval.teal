@@ -1,0 +1,264 @@
+#pragma version 7
+txn ApplicationID
+int 0
+==
+bnz main_l14
+txn OnCompletion
+int DeleteApplication
+==
+bnz main_l13
+txn OnCompletion
+int UpdateApplication
+==
+bnz main_l12
+txn OnCompletion
+int OptIn
+==
+bnz main_l11
+txn OnCompletion
+int CloseOut
+==
+bnz main_l10
+txn OnCompletion
+int NoOp
+==
+bnz main_l7
+err
+main_l7:
+txna ApplicationArgs 0
+byte "setVote"
+==
+bnz main_l9
+err
+main_l9:
+callsub setVote_4
+int 0
+return
+main_l10:
+int 0
+return
+main_l11:
+callsub optIn_3
+int 1
+return
+main_l12:
+int 0
+return
+main_l13:
+int 0
+return
+main_l14:
+callsub proposalInit_2
+int 1
+return
+
+// getExternalInt
+getExternalInt_0:
+store 1
+store 0
+load 0
+load 1
+app_global_get_ex
+store 3
+store 2
+load 3
+bnz getExternalInt_0_l2
+int 0
+b getExternalInt_0_l3
+getExternalInt_0_l2:
+load 2
+getExternalInt_0_l3:
+retsub
+
+// getSenderAsset
+getSenderAsset_1:
+txn Sender
+txna Assets 0
+asset_holding_get AssetBalance
+store 5
+store 4
+load 5
+assert
+load 4
+retsub
+
+// proposalInit
+proposalInit_2:
+global GroupSize
+int 2
+==
+txn GroupIndex
+int 0
+==
+&&
+assert
+gtxn 0 RekeyTo
+global ZeroAddress
+==
+gtxn 1 RekeyTo
+global ZeroAddress
+==
+&&
+assert
+txn NumAppArgs
+int 5
+==
+int 0
+txna ApplicationArgs 3
+btoi
+<
+&&
+int 0
+txna ApplicationArgs 4
+btoi
+<
+&&
+global LatestTimestamp
+txna ApplicationArgs 4
+btoi
+<
+&&
+gtxn 1 TypeEnum
+int appl
+==
+&&
+gtxna 1 ApplicationArgs 0
+byte "setLstProposalAddr"
+==
+&&
+assert
+byte "creator"
+txn Sender
+app_global_put
+byte "daoAppId"
+txna Applications 1
+app_global_put
+byte "description"
+txna ApplicationArgs 0
+app_global_put
+byte "url"
+txna ApplicationArgs 1
+app_global_put
+byte "urlHash"
+txna ApplicationArgs 2
+app_global_put
+byte "startDate"
+txna ApplicationArgs 3
+btoi
+app_global_put
+byte "endDate"
+txna ApplicationArgs 4
+btoi
+app_global_put
+byte "pervProposal"
+txna Applications 1
+byte "lstProposalAddr"
+callsub getExternalInt_0
+app_global_put
+byte "yesVotes"
+int 0
+app_global_put
+byte "noVotes"
+int 0
+app_global_put
+byte "optouts"
+int 0
+app_global_put
+int 1
+return
+
+// optIn
+optIn_3:
+global GroupSize
+int 1
+==
+txn GroupIndex
+int 0
+==
+&&
+assert
+gtxn 0 RekeyTo
+global ZeroAddress
+==
+assert
+txn NumAppArgs
+int 0
+==
+callsub getSenderAsset_1
+int 0
+!=
+&&
+global LatestTimestamp
+byte "startDate"
+app_global_get
+>
+&&
+global LatestTimestamp
+byte "endDate"
+app_global_get
+<
+&&
+assert
+txn Sender
+byte "hasVoted"
+int 0
+app_local_put
+txn Sender
+byte "choice"
+byte ""
+app_local_put
+retsub
+
+// setVote
+setVote_4:
+txn Sender
+txn ApplicationID
+app_opted_in
+txn Sender
+byte "hasVoted"
+app_local_get
+int 0
+==
+&&
+txn NumAppArgs
+int 2
+==
+&&
+txna ApplicationArgs 1
+byte "yes"
+==
+txna ApplicationArgs 1
+byte "no"
+==
+||
+&&
+assert
+txn Sender
+byte "hasVoted"
+int 1
+app_local_put
+txn Sender
+byte "choice"
+txna ApplicationArgs 1
+app_local_put
+txna ApplicationArgs 1
+byte "yes"
+==
+bnz setVote_4_l2
+byte "noVotes"
+byte "noVotes"
+app_global_get
+int 1
++
+app_global_put
+b setVote_4_l3
+setVote_4_l2:
+byte "yesVotes"
+byte "yesVotes"
+app_global_get
+int 1
++
+app_global_put
+setVote_4_l3:
+int 1
+return
